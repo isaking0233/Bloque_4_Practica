@@ -56,7 +56,7 @@ classDiagram
         +run()
     }
     SimulationEngine --> SimulationEvent : Inyecta e invoca dinámicamente
-
+```
 
 * **Polimorfismo:** Aplicado en las entidades del parque (como `Worker` delegando comportamientos a `Guard` y `Technician`).
 
