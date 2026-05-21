@@ -1,4 +1,3 @@
-```markdown
 # Simulador de Parque de Dinosaurios (Bloque Intermedio)
 
 Motor de simulación determinista basado en turnos para la gestión de un parque de atracciones de dinosaurios. Este proyecto modela el comportamiento de turistas, trabajadores, recintos y eventos aleatorios utilizando principios sólidos de Programación Orientada a Objetos (POO) y patrones de diseño.
@@ -25,7 +24,7 @@ classDiagram
         + int getInt(String key, int default)
         + double getDouble(String key, double default)
     }
-    note for ParkConfig "Garantiza una única instancia\nen memoria para las properties"
+    note for ParkConfig "Garantiza una única instancia, en memoria para las properties"
 ```
 
 * **Strategy Pattern:** Implementado en el sistema de eventos (`SimulationEvent`). Permite la ejecución dinámica de eventos (Fugas, Tormentas, Apagones, Promociones y Fallas mecánicas) sin modificar el motor principal.
@@ -62,9 +61,9 @@ classDiagram
 * **Polimorfismo:** Aplicado en las entidades del parque (como `Worker` delegando comportamientos a `Guard` y `Technician`).
 
 ## Características del Bloque Intermedio
-1. **Persistencia Real:** Migración de archivos CSV a una base de datos relacional (H2) con generación automática del esquema vía Liquibase.
+1. **Persistencia Real:** Uso de base de datos relacional (H2) con generación automática del esquema vía Liquibase.
 2. **Generación Segura de IDs:** Implementación de un Contador Maestro Sincronizado en `DatabaseService` para evitar colisiones de llaves primarias en transacciones concurrentes.
-3. **Gestión de Vehículos:** Los técnicos ahora dependen del estado operativo de los vehículos (`VehicleStatus`) para realizar mantenimientos en la planta de energía.
+3. **Gestión de Vehículos:** Los técnicos dependen del estado operativo de los vehículos (`VehicleStatus`) para realizar mantenimientos en la planta de energía.
 4. **Nuevos Eventos:** Incorporación de `PromoHourEvent` (impulso económico) y `VehicleBreakdownEvent` (desgaste de recursos).
 
 ## Instrucciones de Ejecución
