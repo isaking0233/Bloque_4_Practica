@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+    <changeSet id="1" author="examen-intermedio">
+        <createTable tableName="REVENUES">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(50)"/>
+            <column name="amount" type="DOUBLE"/>
+            <column name="tourist_id" type="INT"/>
+            <column name="zone_name" type="VARCHAR(100)"/>
+            <column name="timestamp" type="TIMESTAMP"/>
+        </createTable>
+
+        <createTable tableName="EXPENSES">
+            <column name="id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(50)"/>
+            <column name="amount" type="DOUBLE"/>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="timestamp" type="TIMESTAMP"/>
+        </createTable>
+
+        <createTable tableName="EVENTS">
+            <column name="step" type="BIGINT"/>
+            <column name="event_name" type="VARCHAR(100)"/>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="affected_entities" type="VARCHAR(255)"/>
+            <column name="timestamp" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
