@@ -13,7 +13,7 @@ import java.sql.Timestamp;
 import java.sql.SQLException;
 
 public class DatabaseService {
-    private static final String DB_URL = "jdbc:h2:mem:dinosaurparkdb;DB_CLOSE_DELAY=-1";
+    private static final String DB_URL = "jdbc:h2:./data/parkdb;DB_CLOSE_DELAY=-1";
     private static final String DB_USER = "sa";
     private static final String DB_PASSWORD = "";
     private Connection connection;

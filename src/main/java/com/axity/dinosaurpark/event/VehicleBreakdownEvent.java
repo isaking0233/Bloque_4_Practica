@@ -20,15 +20,15 @@ public class VehicleBreakdownEvent implements SimulationEvent {
     @Override
     public void execute(ParkState state, Random random) {
         // Obtenemos solo las unidades de transporte que se encuentran activas
-        List<Vehicle> operational = state.getVehicles().stream()
-                .filter(vehicle -> vehicle.getStatus() == VehicleStatus.OPERATIONAL)
+        List<Vehicle> available = state.getVehicles().stream()
+                .filter(vehicle -> vehicle.getStatus() == VehicleStatus.AVAILABLE)
                 .toList();
-
-        if (operational.isEmpty()) return; // Si no hay operativos, no pasa nada
+        // Si no hay operativos, no pasa nada
+        if (available.isEmpty()) return;
 
         // Escogemos uno al azar y lo estropeamos
-        Vehicle broken = operational.get(random.nextInt(operational.size()));
-        broken.setStatus(VehicleStatus.BROKEN);
+        Vehicle broken = available.get(random.nextInt(available.size()));
+        broken.breakVehicle();
 
         // Gneramos gastos de reparacion
         state.getDbService().saveExpense(new ExpenseRecord(
