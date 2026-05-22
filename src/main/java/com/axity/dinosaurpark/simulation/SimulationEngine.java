@@ -5,6 +5,7 @@ import com.axity.dinosaurpark.model.*;
 import com.axity.dinosaurpark.persistence.DatabaseService;
 import com.axity.dinosaurpark.zone.*;
 import com.axity.dinosaurpark.monitoring.ParkMonitor;
+import com.axity.dinosaurpark.event.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +14,6 @@ import java.util.Random;
 public class SimulationEngine {
     private final ParkConfig config;
     private final ParkState state;
-    private final EventScheduler scheduler;
 
     private final ArrivalZone arrivalZone;
     private final CentralHub centralHub;
@@ -24,7 +24,9 @@ public class SimulationEngine {
 
     public SimulationEngine(ParkConfig config) {
         this.config = config;
-        Random random = new Random(config.getSeed());
+
+        // Se elimina config.getSeed() para garantizar el no-determinismo (Requerimiento)
+        Random random = new Random();
 
         // Usamos base de datos relacional, la cual funciona en memoria y se destruye al acabar el programa
         // en lugar de usar csv
@@ -77,15 +79,16 @@ public class SimulationEngine {
 
         // Actualizamos parametros del ParkState
         this.state = new ParkState(new ArrayList<>(), dinos, workers, vehicles, powerPlant, dbService, random);
-        this.scheduler = new EventScheduler(config.getSeed(), config.getTotalSteps());
     }
 
     public void run() {
         int totalSteps = config.getTotalSteps();
         int batchSize = config.getInt("simulation.arrivalBatchSize", 5);
+        int maxRepairSteps = config.getInt("vehicles.repairsteps", 3); // Cargar pasos de reparacion
 
         for (int step = 0; step < totalSteps; step++) {
             state.incrementStep();
+            state.clearActiveEvents(); // Limpiar eventos del turno anterior
 
             List<Tourist> arrived = arrivalZone.processBatch(batchSize, state.getDbService());
             state.getActiveTourists().addAll(arrived);
@@ -105,17 +108,61 @@ public class SimulationEngine {
             bathroomZone.tick();
             state.getPowerPlant().tick(state.getRandom(), state.getDbService());
 
-            scheduler.checkForEvent(step).ifPresent(e -> e.execute(state, state.getRandom()));
+            // Ejecucion de eventos aleatorios con sus respectivas probabilidades
+            if (state.getRandom().nextDouble() < config.getDouble("event.storm.probability", 0.03)) {
+                SimulationEvent storm = new StormEvent();
+                storm.execute(state, state.getRandom());
+                state.addActiveEvent(storm.getName());
+            }
+
+            if (state.getRandom().nextDouble() < config.getDouble("event.escape.probability", 0.02)) {
+                SimulationEvent escape = new DinosaurEscapeEvent();
+                escape.execute(state, state.getRandom());
+                state.addActiveEvent(escape.getName());
+            }
+
+            if (state.getRandom().nextDouble() < config.getDouble("event.blackout.probability", 0.01)) {
+                SimulationEvent blackout = new BlackoutEvent();
+                blackout.execute(state, state.getRandom());
+                state.addActiveEvent(blackout.getName());
+            }
+
+            if (state.getRandom().nextDouble() < config.getDouble("event.vehiclebreakdown.probability", 0.05)) {
+                SimulationEvent breakdown = new VehicleBreakdownEvent();
+                breakdown.execute(state, state.getRandom());
+                state.addActiveEvent(breakdown.getName());
+            }
+
+            if (state.getRandom().nextDouble() < config.getDouble("event.promo.probability", 0.04)) {
+                SimulationEvent promo = new DealsHourEvent();
+                promo.execute(state, state.getRandom());
+                state.addActiveEvent(promo.getName());
+            }
+
+            // Logica de vehiculos y trabajadores:
+            // los vehículos se reparan automáticamente después de X pasos,
+            // y los técnicos solo pueden reparar si tienen un vehículo disponible
+            for (Vehicle v : state.getVehicles()) {
+                v.updateTicks(maxRepairSteps); // El vehículo se recupera si está roto
+            }
 
             for (Worker worker : state.getWorkers()) {
                 if (worker instanceof Guard guard) {
                     guard.recaptureEscapedDinosaurs(state.getDinosaurs());
                 } else if (worker instanceof Technician tech) {
-                    tech.repairIfNeeded(state.getPowerPlant());
+                    // Validacion de que el tecnico tiene un vehiculo asignado
+                    // y que este se encuentra disponible para poder reparar
+                    if (tech.getVehicle() != null && tech.getVehicle().getStatus() == VehicleStatus.AVAILABLE) {
+                        tech.repairIfNeeded(state.getPowerPlant());
+                    }
                 }
             }
 
-            ParkMonitor.displaySnapshot(state);
+            // Monitor se imprime solo cada X intervalos
+            int interval = config.getInt("monitoring.intervalsteps", 5);
+            if (state.getCurrentStep() % interval == 0) {
+                ParkMonitor.displaySnapshot(state);
+            }
         }
 
         // Imprimimos el reporte de las tablas antes de acabar la simulacion

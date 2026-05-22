@@ -10,7 +10,7 @@ public class Technician extends Worker {
         this.assignedVehicle = assignedVehicle;
     }
 
-    public Vehicle getAssignedVehicle() {
+    public Vehicle getVehicle() {
         return assignedVehicle;
     }
 
@@ -19,7 +19,7 @@ public class Technician extends Worker {
 
     public void repairIfNeeded(PowerPlant plant) {
         // Solo puede reparar si la planta esta fallando y su vehiculo esta funcionando
-        if (!plant.isOperational() && assignedVehicle.getStatus() == VehicleStatus.OPERATIONAL) {
+        if (!plant.isOperational() && assignedVehicle.getStatus() == VehicleStatus.AVAILABLE) {
             plant.repair();
             System.out.println("-- Técnico " + getName() + " reparó la planta usando el vehículo " + assignedVehicle.getModel());
         }
